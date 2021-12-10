@@ -1,29 +1,31 @@
+const express = require('express')
+const app = express()
+const cors = require('cors')
+require('dotenv').config()
+app.use(cors())
+app.use(express.json())
+
 
 const knex = require('knex')({
     client: 'mysql',
     connection: {
         host: 'brfz6uddsjfdawqruisq-mysql.services.clever-cloud.com',
         port: 3306,
-        user: 'ugqicjvs0qqhx05z',
-        password: 'wCDPgvfAbE0mKOqhDNIl',
+        user: process.env.USERNAME,
+        password: process.env.PASSWORD,
         database: 'brfz6uddsjfdawqruisq'
     }
 });
 
-// knex.from('TEST').select('phno')
-//     .then(no => {
-//         console.log(no.length)
-//         for (var i = 0; i < no.length; i++) {
-//             console.log(no[i].phno)
-//         }
+const crudRouter = require('./routes/crud');
+app.use('/db', crudRouter)
 
-//     });
 
-// knex('TEST').insert({ name: 'haddj', phno: 4343 }).then(res => {
-//     console.log(res)
-// });
+const port = process.env.PORT || 5001
+app.listen(port, () => {
+    console.log(`server running on ${port} `);
+})
 
-knex('TEST').where({ name: 'haddj' }).del().then(res => {
-    console.log(res)
-});
-
+module.exports = {
+    knex: knex
+}
