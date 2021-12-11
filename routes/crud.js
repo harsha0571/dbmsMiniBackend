@@ -34,7 +34,7 @@ router.route('/test').post((req, res) => {
 
 router.route('/test').put((req, res) => {
 
-    let sql = `UPDATE TEST SET PHNO = ${req.body.phno} WHERE NAME = \'${req.body.name}\'`
+    let sql = `UPDATE TEST SET PHNO = ${req.body.phno} WHERE NAME = '${req.body.name}'`
     db.query(sql, (err, resp) => {
         if (err) throw err;
         res.json(resp)
@@ -44,7 +44,7 @@ router.route('/test').put((req, res) => {
 
 router.route('/test').delete((req, res) => {
 
-    let sql = `DELETE FROM TEST WHERE name=\'${req.body.name}\'`
+    let sql = `DELETE FROM TEST WHERE name='${req.body.name}'`
     db.query(sql, (err, resp) => {
         if (err) throw err;
         res.json(resp)
