@@ -2,21 +2,33 @@ const router = require('express').Router();
 require('dotenv').config()
 const mysql2 = require('mysql2')
 
-
 const db = mysql2.createConnection(process.env.DATABASE_URL)
 
 db.connect((err) => {
-    if (err) {
-        throw err;
-    }
+    if (err) throw err;
     console.log("MySql connected .... ")
 })
+
+// const db = mysql2.createConnection({
+//     host: 'localhost',
+//     user: 'user',
+//     password: 'root',
+//     database: 'test'
+// });
+
+// db.connect((err) => {
+//     if (err) throw error;
+//     console.log("Local MySql connected .....")
+// })
+
+
 router.route('/test').get((req, res) => {
 
-    let sql = 'SELECT * FROM TEST'
+    let sql = 'SELECT * FROM users'
     db.query(sql, (err, resp) => {
         if (err) throw err;
         res.json(resp)
+        // console.log(resp)
 
     })
 
