@@ -3,6 +3,8 @@ require('dotenv').config()
 const mysql2 = require('mysql2')
 
 const db = mysql2.createConnection(process.env.DATABASE_URL)
+const axios = require("axios")
+
 
 db.connect((err) => {
     if (err) throw err;
@@ -20,6 +22,18 @@ db.connect((err) => {
 //     if (err) throw error;
 //     console.log("Local MySql connected .....")
 // })
+
+router.route('/axios/:id').get(async (req, res) => {
+    try {
+        const resp = await axios.get(`https://jsonplaceholder.typicode.com/todos/${req.params.id}`)
+        // const resp = await axios.get("http://localhost:5001/db/test")
+        res.status(200).json(resp.data);
+    } catch (err) {
+        res.status(500).json({ msg: err });
+    }
+})
+
+
 
 
 router.route('/test').get((req, res) => {
