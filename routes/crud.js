@@ -4,7 +4,7 @@ const mysql2 = require('mysql2')
 
 const db = mysql2.createConnection(process.env.DATABASE_URL)
 const axios = require("axios")
-
+const jwt = require('jsonwebtoken')
 
 db.connect((err) => {
     if (err) throw err;
@@ -22,6 +22,17 @@ db.connect((err) => {
 //     if (err) throw error;
 //     console.log("Local MySql connected .....")
 // })
+
+router.route('/jwt/:name').get((req, res) => {
+
+    const name = req.params.name
+    const userForToken = {
+        id: name
+    }
+    const token = jwt.sign(userForToken, process.env.SECRET)
+    res.status(200).send({ token, name: name })
+
+})
 
 router.route('/axios/:id').get(async (req, res) => {
     try {
