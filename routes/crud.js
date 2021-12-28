@@ -1,10 +1,11 @@
 const router = require('express').Router();
 require('dotenv').config()
 const mysql2 = require('mysql2')
-
+const bcrypt = require('bcrypt')
 const db = mysql2.createConnection(process.env.DATABASE_URL)
 const axios = require("axios")
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
+const { route } = require('express/lib/application');
 
 db.connect((err) => {
     if (err) throw err;
@@ -22,7 +23,57 @@ db.connect((err) => {
 //     if (err) throw error;
 //     console.log("Local MySql connected .....")
 // })
+router.route('/register').post((req, res) => {
+    const body = req.body
+    let pwd = bcrypt.hashSync(body.password, 10)
 
+    let sql = `insert into users (username , password , name , email,age ) values("${body.username}","${pwd}","${body.name}","${body.email}",${body.age});`
+
+    db.query(sql, (err, resp) => {
+        if (err) throw err;
+        res.json(resp)
+    })
+})
+
+router.route('/login').post((req, res) => {
+    const body = req.body
+    let sql = `select * from users where username="${body.username}";`
+
+    db.query(sql, (err, resp) => {
+        if (err) throw err;
+        const user = resp[0]
+
+
+        const passwordCheck = (user === null)
+            ? false
+            : bcrypt.compareSync(body.password, user.password)
+
+        if (!(user && passwordCheck)) {
+
+            return res.status(401).json({
+                error: 'invalid username or password'
+            })
+        }
+
+        const userForToken = {
+            username: user.username,
+            id: user.user_id
+        }
+        const token = jwt.sign(userForToken, process.env.SECRET)
+        res.status(200).send({ token, username: user.username, name: user.name })
+
+    })
+
+
+})
+
+// sername varchar(20),
+// password varchar(100),
+// name varchar(20),
+// email varchar(30),
+// age int,
+// unique(username),
+// user_id int auto_increment primary key
 router.route('/jwt/:name').get((req, res) => {
 
     const name = req.params.name
