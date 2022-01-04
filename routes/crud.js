@@ -12,6 +12,22 @@ db.connect((err) => {
     console.log("MySql connected .... ")
 })
 
+
+
+// app.post('/register', (req,res)=>{
+
+//     const name = req.body.name
+//     const age = req.body.age
+//     const username = req.body.username
+//     const email = req.body.email
+//     const password = req.body.password
+
+//     const sqlInsert="INSERT INTO users(username, password, name, email, age) VALUES (?,?,?,?,?);"
+//     db.query(sqlInsert, [username, password, name, email, age], (err,result)=>{
+//     console.log(err)
+//     })
+// })
+
 // const db = mysql2.createConnection({
 //     host: 'localhost',
 //     user: 'user',
@@ -24,15 +40,38 @@ db.connect((err) => {
 //     console.log("Local MySql connected .....")
 // })
 router.route('/register').post((req, res) => {
+    const name = req.body.name
+    const age = req.body.age
+    const username = req.body.username
+    const email = req.body.email
+    const password = req.body.password
+
     const body = req.body
     let pwd = bcrypt.hashSync(body.password, 10)
 
-    let sql = `insert into users (username , password , name , email,age ) values("${body.username}","${pwd}","${body.name}","${body.email}",${body.age});`
+    //let sql = `insert into users (username , password , name , email,age ) values("${body.username}","${pwd}","${body.name}","${body.email}",${body.age});`
 
-    db.query(sql, (err, resp) => {
-        if (err) throw err;
-        res.json(resp)
+    const sqlInsert=`INSERT INTO users(username, password, name, email, age) VALUES ("${body.username}","${pwd}","${body.name}","${body.email}",${body.age});`
+    db.query(sqlInsert, (err,result)=>{
+        if(err){
+            console.log(err)
+            res.status(401).json({
+                err: 'error'
+            })
+        }
+            
+        if(result){
+            console.log(result)
+            res.status(200).json({
+                message: 'succesful insertion'
+            })
+        }
+        
     })
+    // db.query(sql, (err, resp) => {
+    //     if (err) throw err;
+    //     res.json(resp)
+    // })
 })
 
 router.route('/login').post((req, res) => {
