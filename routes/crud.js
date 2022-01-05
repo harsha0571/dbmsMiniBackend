@@ -26,11 +26,6 @@ const db = mysql2.createPool({
 // })
 
 router.route('/register').post((req, res) => {
-    const name = req.body.name
-    const age = req.body.age
-    const username = req.body.username
-    const email = req.body.email
-    const password = req.body.password
 
     const body = req.body
     let pwd = bcrypt.hashSync(body.password, 10)
@@ -68,7 +63,7 @@ router.route('/login').post((req, res) => {
             const user = resp[0]
 
 
-            const passwordCheck = (user === null)
+            const passwordCheck = (user === (null || undefined))
                 ? false
                 : bcrypt.compareSync(body.password, user.password)
 
@@ -85,7 +80,7 @@ router.route('/login').post((req, res) => {
                 auth: true
 
             }
-            const token = jwt.sign(userForToken, process.env.SECRET, { expiresIn: 60 * 60 })
+            const token = jwt.sign(userForToken, process.env.SECRET, { expiresIn: 60 })
             res.status(200).send(token)
         }
     })
