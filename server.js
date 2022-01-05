@@ -8,11 +8,11 @@ app.use(express.json())
 
 const middleware = require('./middleware/utils')
 const crudRouter = require('./routes/crud');
-const testRouter = require('./routes/test');
+const apiRouter = require('./routes/api');
 
 app.use(middleware.tokenExtractor)
 app.use('/db', crudRouter.router)
-app.use('/db', testRouter.router)
+app.use('/db', apiRouter.router)
 app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)
 
