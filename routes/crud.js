@@ -59,30 +59,35 @@ router.route('/login').post((req, res) => {
     let sql = `select * from users where username="${body.username}";`
 
     db.query(sql, (err, resp) => {
-        if (err) throw err;
-        const user = resp[0]
-
-
-        const passwordCheck = (user === null)
-            ? false
-            : bcrypt.compareSync(body.password, user.password)
-
-        if (!(user && passwordCheck)) {
-
-            return res.status(401).json({
-                error: 'invalid username or password'
-            })
+        if (err) {
+            res.status(401).json({ error: "invalid login credentials" })
         }
+        else {
 
-        const userForToken = {
-            username: user.username,
-            id: user.user_id,
-            auth: true
 
+            const user = resp[0]
+
+
+            const passwordCheck = (user === null)
+                ? false
+                : bcrypt.compareSync(body.password, user.password)
+
+            if (!(user && passwordCheck)) {
+
+                return res.status(401).json({
+                    error: 'invalid username or password'
+                })
+            }
+
+            const userForToken = {
+                username: user.username,
+                id: user.user_id,
+                auth: true
+
+            }
+            const token = jwt.sign(userForToken, process.env.SECRET, { expiresIn: 60 * 60 })
+            res.status(200).send(token)
         }
-        const token = jwt.sign(userForToken, process.env.SECRET, { expiresIn: 60 * 60 })
-        res.status(200).send(token)
-
     })
 
 
