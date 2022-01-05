@@ -37,6 +37,21 @@ router.route('/total_time').get((req, res) => {
     })
 })
 
+router.route('/total').get((req, res) => {
+    let sql = "SELECT * FROM total_tim"
+    let flag = false
+    db.query(sql, (err, result) => {
+        if (err) {
+            res.status(401).json({ err: "not reachable total_time" })
+            flag = true
+            return
+        }
+        console.log("test failed ")
+        res.status(200).json(result)
+    })
+    if (flag) console.log("came from error")
+})
+
 router.route('/regUser').post((req, res) => {
 
     const body = req.body
@@ -81,7 +96,15 @@ router.route('/regUser').post((req, res) => {
                     })
 
                     let total_time = `INSERT INTO total_time (user_id) VALUES ("${user.user_id}")`
+                    db.query(total_time, (ert, rst) => {
+                        if (ert) {
+                            console.log(ert)
 
+                        }
+                        else {
+                            console.log(rst)
+                        }
+                    })
                 }
             })
 
