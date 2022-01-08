@@ -80,7 +80,7 @@ router.route('/login').post((req, res) => {
                 auth: true
 
             }
-            const token = jwt.sign(userForToken, process.env.SECRET, { expiresIn: 60*60 })
+            const token = jwt.sign(userForToken, process.env.SECRET, { expiresIn: 60 * 60 })
             res.status(200).send(token)
         }
     })
@@ -110,27 +110,29 @@ router.route('/add').post((req, res) => {
         time: body.time,
         status: body.status
     }
-    db.query(sql, (err,result)=>{
-        if(err){
+    db.query(sql, (err, result) => {
+        if (err) {
             console.log(err)
-            res.status(401).json({error: "error"})
+            res.status(401).json({ error: "error" })
         }
-        else{
-            res.status(200).json({message: "add successful"})
+        else {
+            res.status(200).json({ message: "add successful" })
         }
     })
-    
+
 
 })
 router.route("/add").get((req, res) => {
 
-    let sql = `SELECT * FROM media;`
-    
-    db.query(sql, (err,result)=>{
-        if(err){
-            res.status(401).json({error: "error"})
+    let id = req.id
+
+    let sql = `SELECT * FROM media WHERE viewer_id=${id}`
+
+    db.query(sql, (err, result) => {
+        if (err) {
+            res.status(401).json({ error: "error" })
         }
-        else{
+        else {
             res.status(200).json(result)
         }
     })
