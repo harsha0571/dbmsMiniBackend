@@ -11,9 +11,8 @@ const crudRouter = require('./routes/crud');
 const apiRouter = require('./routes/api');
 
 app.use(middleware.tokenExtractor)
-app.use(middleware.userExtractor)
 app.use('/db', crudRouter.router)
-app.use('/db', apiRouter.router)
+app.use('/db', middleware.userExtractor, apiRouter.router)
 app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)
 

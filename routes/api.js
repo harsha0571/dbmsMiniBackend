@@ -6,6 +6,22 @@ const bcrypt = require('bcrypt')
 const axios = require("axios")
 const jwt = require('jsonwebtoken');
 
+router.route("/add").get((req, res) => {
+
+    let id = req.id
+
+    let sql = `SELECT * FROM media WHERE viewer_id=${id}`
+
+    db.query(sql, (err, result) => {
+        if (err) {
+            res.status(401).json({ error: "error" })
+        }
+        else {
+            res.status(200).json(result)
+        }
+    })
+
+})
 
 router.route('/tester').get((req, res) => {
     let sql = `select * from users;

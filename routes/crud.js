@@ -122,22 +122,7 @@ router.route('/add').post((req, res) => {
 
 
 })
-router.route("/add").get((req, res) => {
 
-    let id = req.id
-
-    let sql = `SELECT * FROM media WHERE viewer_id=${id}`
-
-    db.query(sql, (err, result) => {
-        if (err) {
-            res.status(401).json({ error: "error" })
-        }
-        else {
-            res.status(200).json(result)
-        }
-    })
-
-})
 
 module.exports = {
     router,
