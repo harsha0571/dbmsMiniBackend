@@ -6,11 +6,21 @@ const bcrypt = require('bcrypt')
 const axios = require("axios")
 const jwt = require('jsonwebtoken');
 
-router.route("/add").get((req, res) => {
+router.route("/add/:s").get((req, res) => {
 
     let id = req.id
 
-    let sql = `SELECT * FROM media WHERE viewer_id=${id}`
+    let s = req.params.s
+
+    let status
+    if (s === "1") {
+        status = 'watchlist'
+    }
+    else {
+        status = 'watched'
+    }
+
+    let sql = `SELECT * FROM media WHERE (viewer_id=${id} AND status="${status}")`
 
     db.query(sql, (err, result) => {
         if (err) {
@@ -23,16 +33,8 @@ router.route("/add").get((req, res) => {
 
 })
 
-router.route('/tester').get((req, res) => {
-    let sql = `select * from users;
-               select name from users;
-               `
-    db.query(sql, (err, resp) => {
-        if (err) res.status(401).json({ error: "did'nt work" })
-        res.status(200).json(resp)
-    })
 
-})
+
 router.route('/profile').get((req, res) => {
     let sql = "SELECT * FROM profile"
     db.query(sql, (err, result) => {

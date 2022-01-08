@@ -123,6 +123,14 @@ router.route('/add').post((req, res) => {
 
 })
 
+router.route('/tester').get((req, res) => {
+    let sql = `select * from media;`
+    db.query(sql, (err, resp) => {
+        if (err) res.status(401).json({ error: "did'nt work" })
+        res.status(200).json(resp)
+    })
+
+})
 
 module.exports = {
     router,
