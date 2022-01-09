@@ -41,7 +41,20 @@ router.route('/recomm').post((req, res) => {
     let id = req.id
     let media_type = req.body.media_type
     let api_key = process.env.API_KEY
+    var entryId = 0
     let eid = req.body.entry_id
+    let mediaEntry = `SELECT entry_id FROM media WHERE ((viewer_id=${id}) AND (media_id=${media}));`
+    db.query(mediaEntry, (error, result) => {
+        if (error) {
+            console.log(error)
+            return res.status(401).json({ msg: "no entry in media" })
+        }
+        else {
+            console.log(result)
+            entryId = result[0].entry_id
+            console.log(entryId)
+        }
+    })
     var result
     var data
     //   id: 1893,
@@ -52,10 +65,13 @@ router.route('/recomm').post((req, res) => {
 
     async function getRecomms() {
         try {
+            console.log("media", media)
+            console.log("type", media_type)
+            console.log("eid", entryId)
             result = await axios.get(`https://api.themoviedb.org/3/${media_type}/${media}/recommendations?api_key=${api_key}&language=en-US&page=1`)
             let data = result.data.results[0]
-            console.log(data)
-            let sql = `INSERT INTO recommendation VALUES (${id}, ${media}, ${data.id}, "${data.title}",${eid});`
+            console.log("data", data)
+            let sql = `INSERT INTO recommendation VALUES (${id}, ${media}, ${data.id}, "${data.title}",${entryId});`
             db.query(sql, (er, rs) => {
                 if (er) {
                     console.log(er)
