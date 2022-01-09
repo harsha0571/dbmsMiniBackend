@@ -97,8 +97,8 @@ router.route('/regUser').post((req, res) => {
                     user = rs[0]
                     let date = new Date()
                     let year = date.getFullYear().toString()
-                    let month = date.getMonth().toString()
-                    let day = (date.getDate() + 1).toString()
+                    let month = (date.getMonth() + 1).toString()
+                    let day = (date.getDate()).toString()
                     let d = year + "-" + month + "-" + day
 
                     let profile = `INSERT INTO profile (user_id , viewer_name , created_on) VALUES ("${user.user_id}","${user.username}","${d}");`
