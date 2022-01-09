@@ -33,7 +33,46 @@ router.route("/add/:s").get((req, res) => {
 
 })
 
+// https://api.themoviedb.org/3/movie/{movie_id}/recommendations?api_key=<<api_key>>&language=en-US&page=1
+//https://api.themoviedb.org/3/tv/{tv_id}/recommendations?api_key=<<api_key>>&language=en-US&page=1
 
+router.route('/recomm').post((req, res) => {
+    let media = req.body.media_id
+    let id = req.id
+    let media_type = req.body.media_type
+    let api_key = process.env.API_KEY
+    let eid = req.body.entry_id
+    var result
+    var data
+    //   id: 1893,
+    //   media_type: 'movie',
+    //   title: 'Star Wars: Episode I - The Phantom Menace',
+    //   original_title: 'Star Wars: Episode I - The Phantom Menace',
+    //   overview: 'Anakin Skywalker, a young slave strong with the Force, is discovered on Tatooine. Meanwhile, the evil Sith have returned, enacting their plot for revenge against the Jedi.',
+
+    async function getRecomms() {
+        try {
+            result = await axios.get(`https://api.themoviedb.org/3/${media_type}/${media}/recommendations?api_key=${api_key}&language=en-US&page=1`)
+            let data = result.data.results[0]
+            console.log(data)
+            let sql = `INSERT INTO recommendation VALUES (${id}, ${media}, ${data.id}, "${data.title}",${eid});`
+            db.query(sql, (er, rs) => {
+                if (er) {
+                    console.log(er)
+                    return res.status(401).json({ msg: "insertion into recomm failed" })
+                }
+                else {
+                    res.status(400).json(rs)
+                }
+            })
+        }
+        catch (error) {
+            console.log(error)
+            return res.status(401).json({ msg: "axios api call failed" })
+        }
+    }
+    getRecomms()
+})
 
 router.route('/profile').get((req, res) => {
     let id = req.id
