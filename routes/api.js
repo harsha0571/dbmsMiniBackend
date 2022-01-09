@@ -36,7 +36,8 @@ router.route("/add/:s").get((req, res) => {
 
 
 router.route('/profile').get((req, res) => {
-    let sql = "SELECT * FROM profile"
+    let id = req.id
+    let sql = `SELECT * FROM profile WHERE user_id = ${id}`
     db.query(sql, (err, result) => {
         if (err) res.status(401).json({ err: "not reachable profile" })
         else {
