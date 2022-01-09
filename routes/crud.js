@@ -25,7 +25,7 @@ const db = mysql2.createPool({
 //     console.log("Local MySql connected .....")
 // })
 
-router.route('/register').post((req, res) => {
+router.route('/registerOld').post((req, res) => {
 
     const body = req.body
     let pwd = bcrypt.hashSync(body.password, 10)
@@ -41,6 +41,72 @@ router.route('/register').post((req, res) => {
 
         if (result) {
             console.log(result)
+            res.status(200).json({
+                message: 'succesful insertion'
+            })
+        }
+
+    })
+})
+
+router.route('/register').post((req, res) => {
+
+    const body = req.body
+    let pwd = bcrypt.hashSync(body.password, 10)
+
+    const sqlInsert = `INSERT INTO users(username, password, name, email, age) VALUES ("${body.username}","${pwd}","${body.name}","${body.email}",${body.age});`
+    db.query(sqlInsert, (err, result) => {
+        if (err) {
+            console.log(err)
+            res.status(401).json({
+                err: 'error'
+            })
+        }
+
+        if (result) {
+            let getUser = `SELECT * FROM users WHERE username="${body.username}";`
+            let user
+            db.query(getUser, (er, rs) => {
+                if (er) {
+
+                    return res.status(401).json({ err: "user does'nt exist " })
+                }
+                else {
+
+                    user = rs[0]
+                    let date = new Date()
+                    let year = date.getFullYear().toString()
+                    let month = (date.getMonth() + 1).toString()
+                    let day = (date.getDate()).toString()
+                    let d = year + "-" + month + "-" + day
+
+                    let profile = `INSERT INTO profile (user_id , viewer_name , created_on) VALUES ("${user.user_id}","${user.username}","${d}");`
+
+                    db.query(profile, (erp, rsp) => {
+                        if (erp) {
+                            console.log(erp)
+                            return res.status(401).json({ err: "profile entry not made " })
+                        }
+                        else {
+                            console.log(rsp)
+                        }
+                    })
+
+                    let total_time = `INSERT INTO total_time (user_id) VALUES ("${user.user_id}")`
+                    db.query(total_time, (ert, rst) => {
+                        if (ert) {
+                            console.log(ert)
+                            return res.status(401).json({ err: "total time  entry not made " })
+                        }
+                        else {
+                            console.log(rst)
+                        }
+                    })
+                }
+            })
+
+            // console.log(user.user_id)
+
             res.status(200).json({
                 message: 'succesful insertion'
             })
