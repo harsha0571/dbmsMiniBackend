@@ -7,6 +7,7 @@ const axios = require("axios")
 const jwt = require('jsonwebtoken');
 const { reset } = require('nodemon');
 
+
 router.route("/add/:s").get((req, res) => {
 
     let id = req.id
@@ -108,6 +109,50 @@ router.route('/recomm').get(async (req, res) => {
         else {
             return res.status(200).json(result)
         }
+    })
+})
+
+router.route('/duration').put((req, res) => {
+    var id = req.id
+    console.log(req.body)
+    var time = req.body.duration
+    var type = req.body.media_type
+    console.log("tyep ot", type)
+    var user = `SELECT * FROM total_time WHERE user_id=${id};`
+    db.query(user, (error, result) => {
+        if (error) {
+            return res.status(400).json({ error: "user doesn't exist " })
+        }
+        else {
+
+            var typeT = `${type}_time`
+            var typeW = ""
+
+            var presT = 0
+            var presW = 0
+            if (type === "tv") {
+                presT = result[0].tv_time + time
+                presW = result[0].shows_watched + 1
+                typeW = "shows_watched"
+            }
+            else if (type === "movie") {
+                presT = result[0].movie_time + time
+                presW = result[0].movies_watched + 1
+                typeW = "movies_watched"
+            }
+
+            var update = `UPDATE total_time SET ${typeT} = ${presT} ,${typeW}=${presW} WHERE user_id = ${id}; `
+            db.query(update, (er, rs) => {
+                if (er) {
+                    console.log(er)
+                    return res.status(400).json({ error: "update time failed" })
+                }
+                else {
+                    return res.status(200).json(rs)
+                }
+            })
+        }
+
     })
 })
 
