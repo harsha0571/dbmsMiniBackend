@@ -5,6 +5,7 @@ const db = crud.db
 const bcrypt = require('bcrypt')
 const axios = require("axios")
 const jwt = require('jsonwebtoken');
+const { reset } = require('nodemon');
 
 router.route("/add/:s").get((req, res) => {
 
@@ -36,49 +37,54 @@ router.route("/add/:s").get((req, res) => {
 // https://api.themoviedb.org/3/movie/{movie_id}/recommendations?api_key=<<api_key>>&language=en-US&page=1
 //https://api.themoviedb.org/3/tv/{tv_id}/recommendations?api_key=<<api_key>>&language=en-US&page=1
 
-router.route('/recomm').post((req, res) => {
+router.route('/recomm').post(async (req, res) => {
     let media = req.body.media_id
     let id = req.id
     let media_type = req.body.media_type
     let api_key = process.env.API_KEY
-    var entryId = 0
-    let eid = req.body.entry_id
     let mediaEntry = `SELECT entry_id FROM media WHERE ((viewer_id=${id}) AND (media_id=${media}));`
-    db.query(mediaEntry, (error, result) => {
-        if (error) {
-            console.log(error)
-            return res.status(401).json({ msg: "no entry in media" })
-        }
-        else {
-            console.log(result)
-            entryId = result[0].entry_id
-            console.log(entryId)
-        }
-    })
     var result
-    var data
-    //   id: 1893,
-    //   media_type: 'movie',
-    //   title: 'Star Wars: Episode I - The Phantom Menace',
-    //   original_title: 'Star Wars: Episode I - The Phantom Menace',
-    //   overview: 'Anakin Skywalker, a young slave strong with the Force, is discovered on Tatooine. Meanwhile, the evil Sith have returned, enacting their plot for revenge against the Jedi.',
-
+    var entryId = 0
+    function getEntry() {
+        db.query(mediaEntry, (error, result) => {
+            if (error) {
+                console.log(error)
+                return res.status(401).json({ msg: "no entry in media" })
+            }
+            else {
+                entryId = result[0].entry_id
+                getRecomms()
+            }
+        })
+    }
+    getEntry()
     async function getRecomms() {
         try {
-            console.log("media", media)
-            console.log("type", media_type)
-            console.log("eid", entryId)
-            result = await axios.get(`https://api.themoviedb.org/3/${media_type}/${media}/recommendations?api_key=${api_key}&language=en-US&page=1`)
+
+
+            let url = ""
+            if (media_type === "movie") {
+                url = `https://api.themoviedb.org/3/${media_type}/${media}/recommendations?api_key=${api_key}&language=en-US&page=1`
+            }
+            else if (media_type === "tv") {
+                url = `https://api.themoviedb.org/3/${media_type}/${media}/similar?api_key=${api_key}&language=en-US&page=1`
+            }
+
+
+            result = await axios.get(url)
             let data = result.data.results[0]
-            console.log("data", data)
-            let sql = `INSERT INTO recommendation VALUES (${id}, ${media}, ${data.id}, "${data.title}",${entryId});`
+
+            let title = (data.title) ? data.title : data.name
+
+
+            let sql = `INSERT INTO recommendation VALUES (${id}, ${media},"${media_type}",${data.id}, "${title}",${entryId});`
             db.query(sql, (er, rs) => {
                 if (er) {
                     console.log(er)
                     return res.status(401).json({ msg: "insertion into recomm failed" })
                 }
                 else {
-                    res.status(400).json(rs)
+                    res.status(200).json(rs)
                 }
             })
         }
@@ -87,7 +93,22 @@ router.route('/recomm').post((req, res) => {
             return res.status(401).json({ msg: "axios api call failed" })
         }
     }
-    getRecomms()
+
+})
+
+router.route('/recomm').get(async (req, res) => {
+
+    let id = req.id
+    let sql = `SELECT * FROM recommendation WHERE viewer_id=${id};`
+
+    db.query(sql, (error, result) => {
+        if (error) {
+            return res.status(401).json({ err: "no recommendation for this user" })
+        }
+        else {
+            return res.status(200).json(result)
+        }
+    })
 })
 
 router.route('/profile').get((req, res) => {
