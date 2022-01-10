@@ -76,6 +76,9 @@ router.route('/recomm').post(async (req, res) => {
             let data = result.data.results[0]
 
             let title = (data.title) ? data.title : data.name
+            title = (title) ? title : title.orignal_title
+            title = (title) ? title : title.orignal_name
+
 
 
             let sql = `INSERT INTO recommendation VALUES (${id}, ${media},"${media_type}",${data.id}, "${title}",${entryId});`
@@ -121,6 +124,7 @@ router.route('/duration').put((req, res) => {
     var user = `SELECT * FROM total_time WHERE user_id=${id};`
     db.query(user, (error, result) => {
         if (error) {
+            console.log(error)
             return res.status(400).json({ error: "user doesn't exist " })
         }
         else {
@@ -167,8 +171,45 @@ router.route('/profile').get((req, res) => {
     })
 })
 
+router.route('/profile').put((req, res) => {
+    let id = req.id
+    let type = req.body.media_type
+    var user = `SELECT * FROM profile WHERE user_id=${id};`
+    db.query(user, (error, result) => {
+        if (error) {
+            console.log(error)
+            return res.status(400).json({ error: "user doesn't exist " })
+        }
+        else {
+            let typeT
+            let presT
+            if (type === "tv") {
+                typeT = "shows_wishlisted"
+                presT = result[0].shows_wishlisted + 1
+            }
+            else if (type === "movie") {
+                typeT = "movies_wishlisted"
+                presT = result[0].movies_wishlisted + 1
+            }
+
+            var update = `UPDATE profile SET ${typeT} = ${presT} WHERE user_id = ${id}; `
+            db.query(update, (er, rs) => {
+                if (er) {
+                    console.log(er)
+                    return res.status(400).json({ error: "update profile failed" })
+                }
+                else {
+                    return res.status(200).json(rs)
+                }
+            })
+        }
+
+    })
+})
+
 router.route('/total_time').get((req, res) => {
-    let sql = "SELECT * FROM total_time"
+    let id = req.id
+    let sql = `SELECT * FROM total_time WHERE user_id=${id}`
     db.query(sql, (err, result) => {
         if (err) res.status(401).json({ err: "not reachable total_time" })
         else {
