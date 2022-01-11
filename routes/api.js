@@ -11,9 +11,7 @@ const { reset } = require('nodemon');
 router.route("/add/:s").get((req, res) => {
 
     let id = req.id
-
     let s = req.params.s
-
     let status
     if (s === "1") {
         status = 'watchlist'
@@ -35,8 +33,6 @@ router.route("/add/:s").get((req, res) => {
 
 })
 
-// https://api.themoviedb.org/3/movie/{movie_id}/recommendations?api_key=<<api_key>>&language=en-US&page=1
-//https://api.themoviedb.org/3/tv/{tv_id}/recommendations?api_key=<<api_key>>&language=en-US&page=1
 
 router.route('/recomm').post(async (req, res) => {
     let media = req.body.media_id
@@ -44,7 +40,7 @@ router.route('/recomm').post(async (req, res) => {
     let media_type = req.body.media_type
     let api_key = process.env.API_KEY
     let mediaEntry = `SELECT entry_id FROM media WHERE ((viewer_id=${id}) AND (media_id=${media}));`
-    var result
+    var result = {}
     var entryId = 0
     function getEntry() {
         db.query(mediaEntry, (error, result) => {
@@ -63,17 +59,28 @@ router.route('/recomm').post(async (req, res) => {
         try {
 
 
-            let url = ""
-            if (media_type === "movie") {
-                url = `https://api.themoviedb.org/3/${media_type}/${media}/recommendations?api_key=${api_key}&language=en-US&page=1`
-            }
-            else if (media_type === "tv") {
-                url = `https://api.themoviedb.org/3/${media_type}/${media}/similar?api_key=${api_key}&language=en-US&page=1`
-            }
-
-
+            let url = `https://api.themoviedb.org/3/${media_type}/${media}/recommendations?api_key=${api_key}&language=en-US&page=1`
             result = await axios.get(url)
-            let data = result.data.results[0]
+            console.log("result here :")
+            let data = []
+            if (result.data.results.length !== 0) {
+                data = result.data.results[0]
+            }
+            else {
+                url = `https://api.themoviedb.org/3/${media_type}/${media}/similar?api_key=${api_key}&language=en-US&page=1`
+                console.log("did get executed ")
+                console.log("result here 2 :")
+                result = await axios.get(url)
+                if (result.data.results.length !== 0) {
+                    data = result.data.results[0]
+                }
+                else {
+                    console.log("no recome avail")
+                    return res.status(401).json({ error: "no recom avaibable" })
+                }
+            }
+            console.log("result:", result.data.results[0])
+            // let data = result.data.results[0]
 
             let title = (data.title) ? data.title : data.name
             title = (title) ? title : title.orignal_title
@@ -117,10 +124,10 @@ router.route('/recomm').get(async (req, res) => {
 
 router.route('/duration').put((req, res) => {
     var id = req.id
-    console.log(req.body)
+
     var time = req.body.duration
     var type = req.body.media_type
-    console.log("tyep ot", type)
+
     var user = `SELECT * FROM total_time WHERE user_id=${id};`
     db.query(user, (error, result) => {
         if (error) {
@@ -152,6 +159,7 @@ router.route('/duration').put((req, res) => {
                     return res.status(400).json({ error: "update time failed" })
                 }
                 else {
+
                     return res.status(200).json(rs)
                 }
             })
@@ -163,9 +171,13 @@ router.route('/duration').put((req, res) => {
 router.route('/profile').get((req, res) => {
     let id = req.id
     let sql = `SELECT * FROM profile WHERE user_id = ${id}`
-    db.query(sql, (err, result) => {
+    let profile = `SELECT profile.viewer_name, profile.created_on,profile.movies_wishlisted,profile.shows_wishlisted,total_time.movie_time,total_time.movies_watched,total_time.shows_watched,total_time.tv_time
+                    FROM profile
+                    INNER JOIN total_time ON (profile.user_id=total_time.user_id AND profile.user_id = ${id});`
+    db.query(profile, (err, result) => {
         if (err) res.status(401).json({ err: "not reachable profile" })
         else {
+
             res.status(200).json(result)
         }
     })
@@ -233,71 +245,7 @@ router.route('/total').get((req, res) => {
     if (flag) console.log("came from error")
 })
 
-router.route('/regUser').post((req, res) => {
 
-    const body = req.body
-    let pwd = bcrypt.hashSync(body.password, 10)
-
-    const sqlInsert = `INSERT INTO users(username, password, name, email, age) VALUES ("${body.username}","${pwd}","${body.name}","${body.email}",${body.age});`
-    db.query(sqlInsert, (err, result) => {
-        if (err) {
-            console.log(err)
-            res.status(401).json({
-                err: 'error'
-            })
-        }
-
-        if (result) {
-            let getUser = `SELECT * FROM users WHERE username="${body.username}";`
-            let user
-            db.query(getUser, (er, rs) => {
-                if (er) {
-                    console.log(er)
-                    // res.status(401).json({ err: "user does'nt exist " }) 
-                }
-                else {
-
-                    user = rs[0]
-                    let date = new Date()
-                    let year = date.getFullYear().toString()
-                    let month = (date.getMonth() + 1).toString()
-                    let day = (date.getDate()).toString()
-                    let d = year + "-" + month + "-" + day
-
-                    let profile = `INSERT INTO profile (user_id , viewer_name , created_on) VALUES ("${user.user_id}","${user.username}","${d}");`
-
-                    db.query(profile, (erp, rsp) => {
-                        if (erp) {
-                            console.log(erp)
-                            // res.status(401).json({ err: "profile entry not made " })
-                        }
-                        else {
-                            console.log(rsp)
-                        }
-                    })
-
-                    let total_time = `INSERT INTO total_time (user_id) VALUES ("${user.user_id}")`
-                    db.query(total_time, (ert, rst) => {
-                        if (ert) {
-                            console.log(ert)
-
-                        }
-                        else {
-                            console.log(rst)
-                        }
-                    })
-                }
-            })
-
-            // console.log(user.user_id)
-
-            res.status(200).json({
-                message: 'succesful insertion'
-            })
-        }
-
-    })
-})
 
 module.exports = {
     router
