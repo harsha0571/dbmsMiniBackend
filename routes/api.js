@@ -24,6 +24,7 @@ router.route("/add/:s").get((req, res) => {
 
     db.query(sql, (err, result) => {
         if (err) {
+            console.log("eror her ", err)
             res.status(401).json({ error: "error" })
         }
         else {
@@ -121,6 +122,22 @@ router.route('/recomm').get(async (req, res) => {
     })
 })
 
+router.route('/recommD').post(async (req, res) => {
+    let body = req.body
+    let id = req.id
+    let sql = `DELETE  FROM recommendation WHERE (viewer_id=${id} AND recom_id=${body.recom_id});`
+
+    db.query(sql, (error, result) => {
+        if (error) {
+            console.log(error)
+            return res.status(407).json({ err: "no recommendation for this user" })
+        }
+        else {
+            return res.status(200).json(result)
+        }
+    })
+})
+
 router.route('/duration').put((req, res) => {
     var id = req.id
 
@@ -142,13 +159,13 @@ router.route('/duration').put((req, res) => {
             var presW = 0
             if (type === "tv") {
                 presT = result[0].tv_time + time
-                presW = result[0].shows_watched + 1
-                typeW = "shows_watched"
+                presW = result[0].tv_watched + 1
+                typeW = "tv_watched"
             }
             else if (type === "movie") {
                 presT = result[0].movie_time + time
-                presW = result[0].movies_watched + 1
-                typeW = "movies_watched"
+                presW = result[0].movie_watched + 1
+                typeW = "movie_watched"
             }
 
             var update = `UPDATE total_time SET ${typeT} = ${presT} ,${typeW}=${presW} WHERE user_id = ${id}; `
@@ -170,7 +187,7 @@ router.route('/duration').put((req, res) => {
 router.route('/profile').get((req, res) => {
     let id = req.id
     let sql = `SELECT * FROM profile WHERE user_id = ${id}`
-    let profile = `SELECT profile.viewer_name, profile.created_on,profile.movies_wishlisted,profile.shows_wishlisted,total_time.movie_time,total_time.movies_watched,total_time.shows_watched,total_time.tv_time
+    let profile = `SELECT profile.viewer_name, profile.created_on,profile.movie_wishlisted,profile.tv_wishlisted,total_time.movie_time,total_time.movie_watched,total_time.tv_watched,total_time.tv_time
                     FROM profile
                     INNER JOIN total_time ON (profile.user_id=total_time.user_id AND profile.user_id = ${id});`
     db.query(profile, (err, result) => {
@@ -195,12 +212,12 @@ router.route('/profile').put((req, res) => {
             let typeT
             let presT
             if (type === "tv") {
-                typeT = "shows_wishlisted"
-                presT = result[0].shows_wishlisted + 1
+                typeT = "tv_wishlisted"
+                presT = result[0].tv_wishlisted + 1
             }
             else if (type === "movie") {
-                typeT = "movies_wishlisted"
-                presT = result[0].movies_wishlisted + 1
+                typeT = "movie_wishlisted"
+                presT = result[0].movie_wishlisted + 1
             }
 
             var update = `UPDATE profile SET ${typeT} = ${presT} WHERE user_id = ${id}; `

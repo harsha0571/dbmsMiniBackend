@@ -168,7 +168,11 @@ router.route('/add').post((req, res) => {
                 })
             }
             else if (rs[0].status === "watchlist" && body.status === "watched") {
-                let update = `UPDATE media SET status="watched" WHERE(media_id=${body.media_id} AND viewer_id=${body.viewer_id});`
+                let update = `UPDATE media SET status="watched" WHERE(media_id=${body.media_id} AND viewer_id=${body.viewer_id});
+                              UPDATE profile SET ${body.media_type}_wishlisted = ${body.media_type}_wishlisted-1 WHERE user_id=${body.viewer_id};
+                              UPDATE total_time SET ${body.media_type}_watched = ${body.media_type}_watched+1 WHERE user_id=${body.viewer_id};
+                              UPDATE total_time SET ${body.media_type}_time = ${body.media_type}_time+${body.duration} WHERE user_id=${body.viewer_id};
+                             `
                 db.query(update, (eru, rsu) => {
                     if (eru) {
 
