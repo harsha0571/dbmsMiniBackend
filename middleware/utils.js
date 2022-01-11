@@ -62,8 +62,11 @@ const userExtractor = async (req, res, next) => {
     }
     let id = decodedToken.id
     let sql = `SELECT user_id FROM users WHERE user_id=${id}`
-    db.query(sql, (err, res) => {
-        id = res[0].user_id
+    db.query(sql, (err, result) => {
+        if (result !== undefined) {
+            id = result[0].user_id
+
+        }
 
     })
     if (id) {

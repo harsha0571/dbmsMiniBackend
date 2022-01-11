@@ -141,18 +141,55 @@ router.route('/login').post((req, res) => {
 
 router.route('/add').post((req, res) => {
     const body = req.body
-    let sql = `INSERT INTO media (title ,imgurl ,media_type , media_id, viewer_id, duration, time, status)VALUES 
-    ("${body.title}","${body.imgurl}","${body.media_type}",${body.media_id},${body.viewer_id},${body.duration},"${body.time}","${body.status}");`
+    let media = `SELECT * FROM media WHERE (media_id=${body.media_id} AND viewer_id=${body.viewer_id});`
+    db.query(media, (er, rs) => {
+        if (er) {
+            return res.status(401).json({ err: "error with select form media" })
+        }
+        if (rs) {
 
-    db.query(sql, (err, result) => {
-        if (err) {
-            console.log(err)
-            res.status(401).json({ error: "error" })
+            console.log("res here", rs)
+
+            if (rs.length === 0 && body.status !== '') {
+
+                let sql = `INSERT INTO media (title ,imgurl ,media_type , media_id, viewer_id, duration, time, status) VALUES 
+            ("${body.title}","${body.imgurl}","${body.media_type}",${body.media_id},${body.viewer_id},${body.duration},"${body.time}","${body.status}");`
+
+                db.query(sql, (err, result) => {
+                    console.log("got executed here ")
+                    if (err) {
+                        console.log(err)
+                        return res.status(401).json({ error: "error" })
+                    }
+                    else {
+                        console.log("insertion success")
+                        return res.status(200).json({ message: "add successful" })
+                    }
+                })
+            }
+            else if (rs[0].status === "watchlist" && body.status === "watched") {
+                let update = `UPDATE media SET status="watched" WHERE(media_id=${body.media_id} AND viewer_id=${body.viewer_id});`
+                db.query(update, (eru, rsu) => {
+                    if (eru) {
+
+                        return res.status(400).json({ err: "updation unsucessful " })
+                    }
+                    if (rsu) {
+                        console.log("udpation executed ")
+                        return res.status(200).json({ msg: "successful updation from watchlist to watched " })
+                    }
+                })
+            }
+
+            else {
+                console.log("already in one of the lists")
+                return res.status(400).json({ err: "already in one of the lists " })
+            }
+
         }
-        else {
-            res.status(200).json({ message: "add successful" })
-        }
+
     })
+
 
 
 })

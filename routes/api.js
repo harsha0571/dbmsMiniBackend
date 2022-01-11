@@ -61,26 +61,25 @@ router.route('/recomm').post(async (req, res) => {
 
             let url = `https://api.themoviedb.org/3/${media_type}/${media}/recommendations?api_key=${api_key}&language=en-US&page=1`
             result = await axios.get(url)
-            console.log("result here :")
+
             let data = []
             if (result.data.results.length !== 0) {
                 data = result.data.results[0]
             }
             else {
                 url = `https://api.themoviedb.org/3/${media_type}/${media}/similar?api_key=${api_key}&language=en-US&page=1`
-                console.log("did get executed ")
-                console.log("result here 2 :")
+
                 result = await axios.get(url)
                 if (result.data.results.length !== 0) {
                     data = result.data.results[0]
                 }
                 else {
-                    console.log("no recome avail")
+
                     return res.status(401).json({ error: "no recom avaibable" })
                 }
             }
-            console.log("result:", result.data.results[0])
-            // let data = result.data.results[0]
+
+
 
             let title = (data.title) ? data.title : data.name
             title = (title) ? title : title.orignal_title
