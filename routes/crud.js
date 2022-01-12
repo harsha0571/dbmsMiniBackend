@@ -198,6 +198,13 @@ router.route('/add').post((req, res) => {
 
 })
 
+// user_id int,
+// timestamp date,
+// media_id int,
+// media_type varchar(10),
+// foreign key(user_id) references users(user_id)
+
+
 
 
 module.exports = {

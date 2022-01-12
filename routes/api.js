@@ -261,7 +261,44 @@ router.route('/total').get((req, res) => {
     if (flag) console.log("came from error")
 })
 
+router.route('/watch_history').post((req, res) => {
+    let date = new Date()
+    let year = date.getFullYear().toString()
+    let month = (date.getMonth() + 1).toString()
+    let day = (date.getDate()).toString()
+    let d = year + "-" + month + "-" + day
+    let id = req.id
+    let body = req.body
+    let sql = `INSERT INTO watch_history VALUES(${id},"${d}",${body.media_id},"${body.media_type}");`
+    db.query(sql, (error, result) => {
+        if (error) {
+            console.log(error)
+            res.status(400).json({ err: "watch history entry unsucessful" })
+        }
+        if (result) {
+            res.status(200).json({ err: "watch history entry sucessful" })
+        }
+    })
 
+
+})
+
+router.route('/watch_history').get((req, res) => {
+
+    let id = req.id
+    let sql = `SELECT * FROM watch_history WHERE user_id=${id};`
+    db.query(sql, (error, result) => {
+        if (error) {
+            console.log(error)
+            res.status(400).json({ err: "watch history entry unsucessful" })
+        }
+        if (result) {
+            res.status(200).json(result)
+        }
+    })
+
+
+})
 
 module.exports = {
     router
