@@ -283,10 +283,11 @@ router.route('/watch_history').post((req, res) => {
 
 })
 
-router.route('/watch_history').get((req, res) => {
+router.route('/watch_history_get').post((req, res) => {
 
     let id = req.id
-    let sql = `SELECT * FROM watch_history WHERE user_id=${id};`
+    let sql = `SELECT * FROM watch_history WHERE user_id=${id} and timestamp="${req.body.date}";`
+
     db.query(sql, (error, result) => {
         if (error) {
             console.log(error)
