@@ -197,7 +197,42 @@ router.route('/add').post((req, res) => {
 
 
 })
+router.route('/remove').post((req, res) => {
+    let id = req.body.id
+    let entry = req.body.entry_id
+    let status = req.body.status
+    let media = req.body.media_id
+    let type = req.body.media_type
+    let dur = req.body.duration
+    var sql = ''
 
+    // UPDATE media SET status="watched" WHERE(media_id=${body.media_id} AND viewer_id=${body.viewer_id});
+    //  UPDATE profile SET ${body.media_type}_wishlisted = ${body.media_type}_wishlisted-1 WHERE user_id=${body.viewer_id};
+    //  UPDATE total_time SET ${body.media_type}_watched = ${body.media_type}_watched+1 WHERE user_id=${body.viewer_id};
+    //  UPDATE total_time SET ${body.media_type}_time = ${body.media_type}_time+${body.duration} WHERE user_id=${body.viewer_id};
+
+    if (status === 'watchlist') {
+        sql = `DELETE FROM media WHERE entry_id=${entry};
+               UPDATE profile SET ${type}_wishlisted = ${type}_wishlisted -1 WHERE user_id=${id};`
+    }
+    if (status === 'watched') {
+        sql = `DELETE FROM media WHERE entry_id=${entry};
+               UPDATE total_time SET ${type}_watched =${type}_watched-1 WHERE user_id=${id};
+               UPDATE total_time SET ${type}_time = ${type}_time - ${dur} WHERE user_id=${id};
+               DELETE FROM watch_history WHERE media_id=${media} AND user_id=${id};`
+    }
+
+
+    db.query(sql, (error, result) => {
+        if (error) {
+            console.log(error)
+            res.status(400).json({ err: "deletion failed" })
+        }
+        if (result) {
+            res.status(200).json(result)
+        }
+    })
+})
 // user_id int,
 // timestamp date,
 // media_id int,
