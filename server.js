@@ -13,6 +13,9 @@ const apiRouter = require('./routes/api');
 app.use(middleware.tokenExtractor)
 app.use('/db', crudRouter.router)
 app.use('/db', middleware.userExtractor, apiRouter.router)
+app.get('/', (req, res) => {
+    res.status(200).json({ works: "it does" })
+})
 app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)
 
