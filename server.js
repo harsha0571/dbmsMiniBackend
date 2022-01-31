@@ -12,7 +12,7 @@ app.use(express.json())
 
 //     next()
 // });
-app.use(express.static('build'))
+// app.use(express.static('build'))
 const middleware = require('./middleware/utils')
 const crudRouter = require('./routes/crud');
 const apiRouter = require('./routes/api');
